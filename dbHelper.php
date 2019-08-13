@@ -68,7 +68,7 @@
 			
 			$i=0;
 			$conn=$this->conn;
-			$sql="SELECT * FROM riverlevel WHERE yy='$year' AND mm=7";
+			$sql="SELECT * FROM riverlevel WHERE yy='$year' AND mm=8";
 			foreach($conn->query($sql) as $row)
 			{
 				$data[$i]=$row;
@@ -107,51 +107,97 @@
 			}
 		}
 
-		public function addData($dat)
-		{
-			$data=htmlentities($dat['data']);
-			$dd=htmlentities($dat['dd']);
-            $mm=htmlentities($dat['mm']);
-            $yy=htmlentities($dat['yy']);
-            $location=htmlentities($dat['location']);
-            
-			
-		    $conn=$this->conn;
-			try{
-
-			        $dat=[];
-                    $sql="SELECT * FROM riverlevel WHERE  dd='$dd' AND mm='$mm' AND yy='$yy' AND location ='$location';  ";
-                    foreach($conn->query($sql) as $row)
-                    {
-                        $dat=$row;
-					}
-					$dat=array();
-                    if(!empty($dat))
-                    {
-                        //$mm+=(int)$student[0];
-                    
-                        $sql="UPDATE riverlevel SET data='$data' WHERE dd='$dd' AND mm='$mm' AND yy='$yy' AND location='$location'";
-                        $conn->query($sql);
-                    }
-            
-	                else
-    	            {
-        	            $sql="INSERT INTO riverlevel(data,dd,mm,yy,location) VALUES (:data,:dd,:mm,:yy,:location)";
-            	        $stmt=$conn->prepare($sql);
-                	    $stmt->bindValue('data',$data);
-                    	$stmt->bindValue('dd',$dd);
-                    	$stmt->bindValue('mm',$mm);
-                   	    $stmt->bindValue('yy',$yy);
-                        $stmt->bindValue('location',$location);
-                        $stmt->execute();
-            	    }
-            	    return true;
-                
+		public function fetchPrediction(){
+			$data = array();
+			$now=time();
+			$i=0;
+			$conn=$this->conn;
+			$sql="SELECT * FROM warning WHERE datetime>'$now' ORDER BY datetime ASC";
+			foreach($conn->query($sql) as $row)
+			{
+				$row[1]=$row[1]-$now;
+				$data[$i]=$row;
+				$i++;
 			}
-			catch(PDOException $e)
+			if(!empty($data))
+			{
+				return $data;
+			}
+			else
 			{
 				return false;
-				echo $e->getMessage();
+			}
+		}
+
+		public function addData($dat)
+		{
+			if(isset($dat['data']))
+			{
+				$data=htmlentities($dat['data']);
+				$dd=htmlentities($dat['dd']);
+				$mm=htmlentities($dat['mm']);
+				$yy=htmlentities($dat['yy']);
+				$location=htmlentities($dat['location']);
+				
+				
+				$conn=$this->conn;
+				try{
+
+						$dat=[];
+						$sql="SELECT * FROM riverlevel WHERE  dd='$dd' AND mm='$mm' AND yy='$yy' AND location ='$location';  ";
+						foreach($conn->query($sql) as $row)
+						{
+							$dat=$row;
+						}
+						$dat=array();
+						if(!empty($dat))
+						{
+							//$mm+=(int)$student[0];
+						
+							$sql="UPDATE riverlevel SET data='$data' WHERE dd='$dd' AND mm='$mm' AND yy='$yy' AND location='$location'";
+							$conn->query($sql);
+						}
+				
+						else
+						{
+							$sql="INSERT INTO riverlevel(data,dd,mm,yy,location) VALUES (:data,:dd,:mm,:yy,:location)";
+							$stmt=$conn->prepare($sql);
+							$stmt->bindValue('data',$data);
+							$stmt->bindValue('dd',$dd);
+							$stmt->bindValue('mm',$mm);
+							$stmt->bindValue('yy',$yy);
+							$stmt->bindValue('location',$location);
+							$stmt->execute();
+						}
+						return true;
+					
+				}
+				catch(PDOException $e)
+				{
+					return false;
+					echo $e->getMessage();
+				}
+			}
+			else if(isset($dat['delay'])){
+				$delay=htmlentities($dat['delay']);
+				$rise=htmlentities($dat['rise']);
+
+				$predicted=time()+$delay;
+				
+				$conn=$this->conn;
+				try{
+					$sql="INSERT INTO warning(datetime,rise) VALUES (:datetime,:rise)";
+					$stmt=$conn->prepare($sql);
+					$stmt->bindValue('datetime',$predicted);
+					$stmt->bindValue('rise',$rise);
+					$stmt->execute();
+					return true;
+				}
+				catch(PDOException $e)
+				{
+					return false;
+					echo $e->getMessage();
+				}
 			}
 		}
 		

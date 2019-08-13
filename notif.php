@@ -37,7 +37,7 @@
             $yearData=['0'];
         }
 
-        $monthDataAll=$db->fetchByMonth(6);
+        $monthDataAll=$db->fetchByMonth(8);
         $monthData=[];
         $monthLabel=[];
         $i=0;
@@ -75,7 +75,10 @@
                 echo "ind-grey";
             }
         ?>">
-
+    <div id='warning' style="color:black;margin-top:100px;" class="text-center">
+        <h3>Predicted Time: <span id='predictedTime'>0</span> seconds</h3>
+        <h3>Predicted Rise: <span id='predictedRise'>0</span> cm</h3>
+    </div>
 
     <script src="lib/jquery-3.4.1.min.js"></script>
     <!-- <script src="js/main.js"></script> -->
@@ -89,7 +92,10 @@
         // }
 
         // var monthLabel=<?php echo json_encode($monthLabel); ?>;
-
+        $(document).ready(function(){
+            $('#warning').hide();
+        });
+        
         function ajaxAlert(){
             $.ajax({
                     url: 'ajaxinterface.php',
@@ -111,6 +117,31 @@
                 });
         }
         setInterval("ajaxAlert();", 1000);
+
+        function predictAjax(){
+            $.ajax({
+                    url: 'ajaxPredict.php',
+                    success: function(response)
+                    {
+                        var jsonData=JSON.parse(response);
+                        if(jsonData==false){
+                            $('#predictedTime').text(0);
+                            $('#predictedRise').text(0);
+                            $('#warning').hide();
+                        }
+                        for(var key in jsonData)
+                        {
+                            if(jsonData.hasOwnProperty(key))
+                            {
+                                $('#predictedTime').text(jsonData[0][1]);
+                                $('#predictedRise').text(jsonData[0][2]);
+                                $('#warning').show();
+                            }
+                        }
+                    }
+                });
+        }
+        setInterval("predictAjax();", 1000);
         
     </script>
 </body>

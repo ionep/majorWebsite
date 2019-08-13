@@ -40,7 +40,7 @@
             $yearData=['0'];
         }
 
-        $monthDataAll=$db->fetchByMonth(7);
+        $monthDataAll=$db->fetchByMonth(8);
         $monthData=[];
         $monthLabel=[];
         $i=0;

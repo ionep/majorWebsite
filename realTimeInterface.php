@@ -1,7 +1,7 @@
 <?php
 	include 'dbHelper.php';
 	$db= new Database();
-	$data=$db->fetchByMonth(6);
+	$data=$db->fetchByMonth(8);
 	$monthData=[];
     $monthLabel=[];
     $i=0;
